@@ -508,14 +508,6 @@
             border: 2px solid var(--success) !important;
             box-shadow: 0 0 20px rgba(78, 159, 61, 0.3);
         }
-        
-        .loot-item {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255,255,255,0.05));
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 8px;
-            padding: 10px;
-            margin: 6px 0;
-        }
     </style>
 </head>
 <body>
@@ -524,8 +516,8 @@
             <h1>⚔️ Сага о Бездне</h1>
             <p class="subtitle">Эпическая мультиплеерная RPG - Путешествие через 11 королевств</p>
             <div class="connection-status">
-                <div class="status-indicator" id="status-indicator"></div>
-                <span id="status-text">Подключение...</span>
+                <div class="status-indicator connected" id="status-indicator"></div>
+                <span id="status-text">Готов к игре</span>
             </div>
             <div class="game-code" id="game-code-display">Идентификатор игры: загрузка...</div>
             <div id="player-id-display" style="margin-top: 10px; opacity: 0.8;"></div>
@@ -644,7 +636,7 @@
     </footer>
 
     <script>
-        // Упрощенная система синхронизации через localStorage (работает без сервера)
+        // Упрощенная игровая система
         const gameData = {
             gameId: generateGameId(),
             playerId: generatePlayerId(),
@@ -668,44 +660,19 @@
                         "Осмотреть руины на востоке", 
                         "Пройти по тропе вдоль реки"
                     ]
-                },
-                "Горный перевал": {
-                    description: "Высокогорный перевал с опасными тропами. Ветер свистит между скал, а вдали виднеются вершины, покрытые снегом.",
-                    options: [
-                        "Подняться на最高ую точку",
-                        "Исследовать пещеру",
-                        "Спуститься в долину"
-                    ]
-                },
-                "Заброшенный замок": {
-                    description: "Древний замок, некогда величественный, а ныне пристанище тёмных существ. Башни замка манят к исследованию.",
-                    options: [
-                        "Штурмовать главные ворота",
-                        "Найти тайный вход",
-                        "Исследовать подземелья"
-                    ]
                 }
             },
             
             castles: [
                 { id: 1, name: "Замок Драконьего Пламени", ruler: "Король Драконов", defeated: false, description: "Огненная цитадель, где воздух дрожит от жара драконьих пастей." },
-                { id: 2, name: "Логово Виверн", ruler: "Король Виверн", defeated: false, description: "Гнездовье крылатых убийц на неприступных утёсах." },
-                { id: 3, name: "Гнездо Грифонов", ruler: "Король Грифонов", defeated: false, description: "Орлиное логово среди облаков и скал." },
-                { id: 4, name: "Обитель Фениксов", ruler: "Король Фениксов", defeated: false, description: "Пылающие чертоги, где рождаются и умирают огненные птицы." },
-                { id: 5, name: "Глубины Кракена", ruler: "Король Кракенов", defeated: false, description: "Подводное царство в морских пучинах." },
-                { id: 6, name: "Роща Единорогов", ruler: "Король Единорогов", defeated: false, description: "Волшебный лес, где время течёт иначе." },
-                { id: 7, name: "Пещеры Цербера", ruler: "Король Церберов", defeated: false, description: "Трёхглавый лабиринт в глубинах земли." },
-                { id: 8, name: "Болото Василисков", ruler: "Король Василисков", defeated: false, description: "Токсичные топи, где камень обращается в прах." },
-                { id: 9, name: "Озеро Гидр", ruler: "Король Гидр", defeated: false, description: "Водоём, кишащий многоглавыми чудовищами." },
-                { id: 10, name: "Пустошь Мантикор", ruler: "Король Мантикор", defeated: false, description: "Бесплодная земля, где охотятся скорпионохвостые звери." },
-                { id: 11, name: "Лабиринт Химер", ruler: "Король Химер", defeated: false, description: "Бесконечный лабиринт с меняющейся геометрией." }
+                { id: 2, name: "Логово Виверн", ruler: "Король Виверн", defeated: false, description: "Гнездовье крылатых убийц на неприступных утёсах." }
             ]
         };
 
         // Генерация ID игры
         function generateGameId() {
             const urlParams = new URLSearchParams(window.location.search);
-            const gameId = urlParams.get('game') || Math.random().toString(36).substring(2, 10).toUpperCase();
+            const gameId = urlParams.get('game') || Math.random().toString(36).substring(2, 8).toUpperCase();
             
             // Обновляем URL без перезагрузки страницы
             if (!urlParams.get('game')) {
@@ -720,7 +687,7 @@
         function generatePlayerId() {
             let playerId = localStorage.getItem(`playerId_${gameData.gameId}`);
             if (!playerId) {
-                playerId = 'player_' + Math.random().toString(36).substring(2, 15);
+                playerId = 'player_' + Math.random().toString(36).substring(2, 10);
                 localStorage.setItem(`playerId_${gameData.gameId}`, playerId);
             }
             return playerId;
@@ -748,8 +715,6 @@
         const storyContent = document.getElementById('story-content');
         const enemiesList = document.getElementById('enemies-list');
         const diceResult = document.getElementById('dice-result');
-        const statusIndicator = document.getElementById('status-indicator');
-        const statusText = document.getElementById('status-text');
         const gameCodeDisplay = document.getElementById('game-code-display');
         const gameLinkInput = document.getElementById('game-link');
         
@@ -765,6 +730,7 @@
 
         // Инициализация игры
         function initGame() {
+            console.log("Инициализация игры...");
             updateGameLink();
             gameCodeDisplay.textContent = `Идентификатор игры: ${gameData.gameId}`;
             playerIdDisplay.textContent = `Ваш идентификатор: ${gameData.playerId.substring(0, 8)}...`;
@@ -775,20 +741,16 @@
             // Обработчики событий
             setupEventListeners();
             
-            // Синхронизация каждые 2 секунды
-            setInterval(syncGameState, 2000);
-            
-            // Проверка существующего персонажа
-            checkExistingPlayer();
-            
             renderGameState();
             
-            statusIndicator.className = 'status-indicator connected';
-            statusText.textContent = 'Игра синхронизирована';
+            console.log("Игра инициализирована!");
         }
 
         // Настройка обработчиков событий
         function setupEventListeners() {
+            console.log("Настройка обработчиков событий...");
+            
+            // Кнопки действий
             actionButtons.attack.addEventListener('click', () => performAction('attack'));
             actionButtons.magic.addEventListener('click', () => performAction('magic'));
             actionButtons.stealth.addEventListener('click', () => performAction('stealth'));
@@ -796,12 +758,23 @@
             actionButtons.explore.addEventListener('click', () => performAction('explore'));
             nextTurnBtn.addEventListener('click', nextTurn);
             
-            addPlayerBtn.addEventListener('click', () => playerModal.style.display = 'flex');
+            // Кнопки интерфейса
+            addPlayerBtn.addEventListener('click', () => {
+                console.log("Открытие модального окна...");
+                playerModal.style.display = 'flex';
+            });
+            
             startGameBtn.addEventListener('click', startGame);
             submitVoteBtn.addEventListener('click', submitVote);
             
-            playerForm.addEventListener('submit', addPlayer);
+            // Форма создания персонажа
+            playerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log("Отправка формы персонажа...");
+                addPlayer(e);
+            });
             
+            // Закрытие модального окна
             closeButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     playerModal.style.display = 'none';
@@ -813,15 +786,18 @@
                     playerModal.style.display = 'none';
                 }
             });
+            
+            console.log("Обработчики событий настроены!");
         }
 
         // Проверка существующего персонажа
         function checkExistingPlayer() {
-            const savedPlayers = JSON.parse(localStorage.getItem(`players_${gameData.gameId}`) || '[]');
+            const savedPlayers = getPlayers();
             const myPlayer = savedPlayers.find(p => p.id === gameData.playerId);
             
             if (myPlayer) {
                 gameData.myPlayer = myPlayer;
+                gameData.players = savedPlayers;
                 addPlayerBtn.textContent = '🎭 Мой персонаж';
                 addPlayerBtn.disabled = true;
                 
@@ -831,51 +807,22 @@
             }
         }
 
-        // Синхронизация состояния
-        function syncGameState() {
-            const savedGame = localStorage.getItem(`sagaOfTheAbyss_${gameData.gameId}`);
-            if (savedGame) {
-                const parsedGame = JSON.parse(savedGame);
-                
-                // Проверяем, изменилось ли состояние игры
-                if (JSON.stringify(parsedGame) !== JSON.stringify({
-                    gameStarted: gameData.gameStarted,
-                    currentPlayerIndex: gameData.currentPlayerIndex,
-                    currentLocation: gameData.currentLocation,
-                    currentCastle: gameData.currentCastle,
-                    castlesDefeated: gameData.castlesDefeated,
-                    voteInProgress: gameData.voteInProgress,
-                    currentVote: gameData.currentVote,
-                    playerVotes: gameData.playerVotes,
-                    currentEnemies: gameData.currentEnemies,
-                    castles: gameData.castles
-                })) {
-                    // Обновляем состояние игры
-                    gameData.gameStarted = parsedGame.gameStarted || gameData.gameStarted;
-                    gameData.currentPlayerIndex = parsedGame.currentPlayerIndex || gameData.currentPlayerIndex;
-                    gameData.currentLocation = parsedGame.currentLocation || gameData.currentLocation;
-                    gameData.currentCastle = parsedGame.currentCastle || gameData.currentCastle;
-                    gameData.castlesDefeated = parsedGame.castlesDefeated || gameData.castlesDefeated;
-                    gameData.voteInProgress = parsedGame.voteInProgress || gameData.voteInProgress;
-                    gameData.currentVote = parsedGame.currentVote || gameData.currentVote;
-                    gameData.playerVotes = parsedGame.playerVotes || gameData.playerVotes;
-                    gameData.currentEnemies = parsedGame.currentEnemies || gameData.currentEnemies;
-                    gameData.castles = parsedGame.castles || gameData.castles;
-                    
-                    if (gameData.gameStarted && !gameControls.style.display || gameControls.style.display === 'none') {
-                        showGameControls();
-                    }
-                    
-                    renderGameState();
-                }
-                
-                // Синхронизация игроков
-                const savedPlayers = JSON.parse(localStorage.getItem(`players_${gameData.gameId}`) || '[]');
-                if (JSON.stringify(savedPlayers) !== JSON.stringify(gameData.players)) {
-                    gameData.players = savedPlayers;
-                    renderPlayers();
-                    updatePlayersCount();
-                }
+        // Получение списка игроков
+        function getPlayers() {
+            try {
+                return JSON.parse(localStorage.getItem(`players_${gameData.gameId}`) || '[]');
+            } catch (e) {
+                console.error("Ошибка загрузки игроков:", e);
+                return [];
+            }
+        }
+
+        // Сохранение списка игроков
+        function savePlayers(players) {
+            try {
+                localStorage.setItem(`players_${gameData.gameId}`, JSON.stringify(players));
+            } catch (e) {
+                console.error("Ошибка сохранения игроков:", e);
             }
         }
 
@@ -908,8 +855,6 @@
                 btn.disabled = !canAct;
             });
             nextTurnBtn.disabled = !canAct;
-            
-            renderPlayers();
         }
 
         // Обновление ссылки для общего доступа
@@ -927,48 +872,55 @@
 
         // Сохранение состояния
         function saveGameState() {
-            localStorage.setItem(`sagaOfTheAbyss_${gameData.gameId}`, JSON.stringify({
-                gameStarted: gameData.gameStarted,
-                currentPlayerIndex: gameData.currentPlayerIndex,
-                currentLocation: gameData.currentLocation,
-                currentCastle: gameData.currentCastle,
-                castlesDefeated: gameData.castlesDefeated,
-                voteInProgress: gameData.voteInProgress,
-                currentVote: gameData.currentVote,
-                playerVotes: gameData.playerVotes,
-                currentEnemies: gameData.currentEnemies,
-                castles: gameData.castles
-            }));
-            
-            localStorage.setItem(`players_${gameData.gameId}`, JSON.stringify(gameData.players));
+            try {
+                localStorage.setItem(`sagaOfTheAbyss_${gameData.gameId}`, JSON.stringify({
+                    gameStarted: gameData.gameStarted,
+                    currentPlayerIndex: gameData.currentPlayerIndex,
+                    currentLocation: gameData.currentLocation,
+                    currentCastle: gameData.currentCastle,
+                    castlesDefeated: gameData.castlesDefeated,
+                    voteInProgress: gameData.voteInProgress,
+                    currentVote: gameData.currentVote,
+                    playerVotes: gameData.playerVotes,
+                    currentEnemies: gameData.currentEnemies
+                }));
+                
+                savePlayers(gameData.players);
+            } catch (e) {
+                console.error("Ошибка сохранения состояния:", e);
+            }
         }
 
         // Загрузка состояния
         function loadGameState() {
-            const savedGame = localStorage.getItem(`sagaOfTheAbyss_${gameData.gameId}`);
-            if (savedGame) {
-                const parsedGame = JSON.parse(savedGame);
-                
-                Object.assign(gameData, {
-                    gameStarted: parsedGame.gameStarted || gameData.gameStarted,
-                    currentPlayerIndex: parsedGame.currentPlayerIndex || gameData.currentPlayerIndex,
-                    currentLocation: parsedGame.currentLocation || gameData.currentLocation,
-                    currentCastle: parsedGame.currentCastle || gameData.currentCastle,
-                    castlesDefeated: parsedGame.castlesDefeated || gameData.castlesDefeated,
-                    voteInProgress: parsedGame.voteInProgress || gameData.voteInProgress,
-                    currentVote: parsedGame.currentVote || gameData.currentVote,
-                    playerVotes: parsedGame.playerVotes || gameData.playerVotes,
-                    currentEnemies: parsedGame.currentEnemies || gameData.currentEnemies,
-                    castles: parsedGame.castles || gameData.castles
-                });
-                
-                if (gameData.gameStarted) {
-                    showGameControls();
+            try {
+                const savedGame = localStorage.getItem(`sagaOfTheAbyss_${gameData.gameId}`);
+                if (savedGame) {
+                    const parsedGame = JSON.parse(savedGame);
+                    
+                    Object.assign(gameData, {
+                        gameStarted: parsedGame.gameStarted || false,
+                        currentPlayerIndex: parsedGame.currentPlayerIndex || 0,
+                        currentLocation: parsedGame.currentLocation || "Начальная точка",
+                        currentCastle: parsedGame.currentCastle || null,
+                        castlesDefeated: parsedGame.castlesDefeated || 0,
+                        voteInProgress: parsedGame.voteInProgress || false,
+                        currentVote: parsedGame.currentVote || null,
+                        playerVotes: parsedGame.playerVotes || {},
+                        currentEnemies: parsedGame.currentEnemies || []
+                    });
+                    
+                    if (gameData.gameStarted) {
+                        showGameControls();
+                    }
                 }
+                
+                gameData.players = getPlayers();
+                checkExistingPlayer();
+                
+            } catch (e) {
+                console.error("Ошибка загрузки состояния:", e);
             }
-            
-            const savedPlayers = JSON.parse(localStorage.getItem(`players_${gameData.gameId}`) || '[]');
-            gameData.players = savedPlayers;
         }
 
         // Рендеринг игроков
@@ -996,9 +948,6 @@
                         <div class="stat">❤️ ${player.health}/${player.maxHealth}</div>
                         <div class="stat">⭐ ${player.xp}</div>
                         <div class="stat">${getClassName(player.class)}</div>
-                    </div>
-                    <div class="skills">
-                        <strong>Навыки:</strong> ${player.skills.map(skill => skill.name).join(', ') || 'Пока не изучены'}
                     </div>
                     ${isActive ? '<div class="player-controls"><strong>🎲 Сейчас ходит!</strong></div>' : ''}
                 `;
@@ -1122,8 +1071,7 @@
         function generateCastleEnemies(castle) {
             const enemyTypes = {
                 1: ["Молодой дракон", "Драконий страж", "Огненный элементаль"],
-                2: ["Виверна-разведчик", "Взрослая виверна", "Король виверн"],
-                3: ["Грифон-страж", "Взрослый грифон", "Король грифонов"]
+                2: ["Виверна-разведчик", "Взрослая виверна", "Король виверн"]
             };
             
             gameData.currentEnemies = enemyTypes[castle.id] ? enemyTypes[castle.id].map((name, index) => ({
@@ -1237,6 +1185,8 @@
             
             saveGameState();
             renderGameState();
+            
+            console.log("Персонаж создан:", newPlayer);
         }
 
         // Получение здоровья по классу
@@ -1438,4 +1388,4 @@
         window.addEventListener('DOMContentLoaded', initGame);
     </script>
 </body>
-</html>
+    </html>
