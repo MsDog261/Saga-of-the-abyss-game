@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сага о Бездне - Мультиплеерная RPG</title>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #1a1a2e;
@@ -16,8 +14,6 @@
             --success: #4e9f3d;
             --warning: #ff9a3c;
             --magic: #9d4edd;
-            --forest: #2d5016;
-            --dungeon: #5d4037;
         }
         
         * {
@@ -47,25 +43,19 @@
             padding: 20px;
             background: rgba(0, 0, 0, 0.4);
             border-radius: 15px;
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, var(--accent), var(--magic));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            font-weight: 800;
+            color: var(--accent);
         }
         
         .subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         
         .game-area {
@@ -75,43 +65,90 @@
             margin-bottom: 20px;
         }
         
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         .panel {
-            background: linear-gradient(135deg, rgba(21, 33, 62, 0.9), rgba(15, 52, 96, 0.8));
+            background: rgba(21, 33, 62, 0.9);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+        }
+        
+        .game-code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #7f8c8d;
+        }
+        
+        .status-indicator.connected {
+            background-color: var(--success);
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--accent), #c1355c);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.6;
         }
         
         .player-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            background: rgba(255,255,255,0.08);
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
-            transition: all 0.4s ease;
-            border-left: 4px solid transparent;
             border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .player-card.active {
-            border-left-color: var(--accent);
-            background: linear-gradient(135deg, rgba(233, 69, 96, 0.15), rgba(255,255,255,0.05));
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.2);
-        }
-        
-        .player-card.my-turn {
-            border-left-color: var(--success);
-            background: linear-gradient(135deg, rgba(78, 159, 61, 0.15), rgba(255,255,255,0.05));
-            animation: pulse-glow 2s infinite;
         }
         
         .player-card h3 {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
-            font-size: 1.1rem;
         }
         
         .player-stats {
@@ -127,106 +164,27 @@
             border-radius: 20px;
             font-size: 0.85rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 5px;
         }
         
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .travel-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        button {
-            background: linear-gradient(135deg, var(--accent), #c1355c);
-            color: white;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
-            background: linear-gradient(135deg, #5a6268, #6c757d);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.6;
-        }
-        
-        .magic-btn {
-            background: linear-gradient(135deg, var(--magic), #7b2cbf);
-        }
-        
-        .stealth-btn {
-            background: linear-gradient(135deg, #4361ee, #3a0ca3);
-        }
-        
-        .social-btn {
-            background: linear-gradient(135deg, #f72585, #b5179e);
-        }
-        
-        .explore-btn {
-            background: linear-gradient(135deg, #4cc9f0, #4361ee);
-        }
-        
-        .travel-btn {
-            background: linear-gradient(135deg, var(--forest), #4a7c20);
-        }
-        
-        .vote-btn {
-            background: linear-gradient(135deg, var(--warning), #e67e22);
-        }
-        
-        .dice-result {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin: 15px 0;
-            text-align: center;
-            min-height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .instructions {
             background: rgba(0, 0, 0, 0.4);
             border-radius: 12px;
-            padding: 12px;
+            padding: 15px;
+            margin-top: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .success {
-            color: var(--success);
-            text-shadow: 0 0 15px rgba(78, 159, 61, 0.6);
+        .instructions h3 {
+            margin-bottom: 12px;
+            color: var(--warning);
         }
         
-        .failure {
-            color: var(--accent);
-            text-shadow: 0 0 15px rgba(233, 69, 96, 0.6);
+        .location-info {
+            background: rgba(45, 80, 22, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .story-container {
@@ -239,109 +197,8 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .story-content p {
-            margin-bottom: 12px;
-            padding: 10px;
-            border-left: 4px solid var(--accent);
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 0 8px 8px 0;
-            line-height: 1.6;
-        }
-        
-        .location-info {
-            background: linear-gradient(135deg, rgba(45, 80, 22, 0.3), rgba(74, 124, 32, 0.2));
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .voting-section {
-            background: linear-gradient(135deg, rgba(255, 154, 60, 0.1), rgba(255, 255, 255, 0.05));
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .vote-option {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .vote-option:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-        
-        .vote-option.selected {
-            background: linear-gradient(135deg, rgba(255, 154, 60, 0.3), rgba(255, 255, 255, 0.1));
-            border-color: var(--warning);
-        }
-        
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .skill-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-            border-radius: 10px;
-            padding: 15px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .skill-card.unlocked {
-            background: linear-gradient(135deg, rgba(78, 159, 61, 0.2), rgba(255,255,255,0.05));
-            border-left: 4px solid var(--success);
-        }
-        
-        .skill-card.locked {
-            opacity: 0.6;
-        }
-        
-        .skill-card h4 {
-            margin-bottom: 10px;
-            color: var(--light);
-            font-size: 1rem;
-        }
-        
-        .enemies-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .enemy-card {
-            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(255,255,255,0.05));
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .enemy-card.defeated {
-            opacity: 0.5;
-            background: linear-gradient(135deg, rgba(78, 159, 61, 0.2), rgba(255,255,255,0.05));
-        }
-        
-        .enemy-card.boss {
-            background: linear-gradient(135deg, rgba(157, 78, 221, 0.3), rgba(233, 69, 96, 0.2));
-            border: 2px solid var(--magic);
-        }
-        
         .progress-section {
-            background: linear-gradient(135deg, rgba(76, 201, 240, 0.1), rgba(255, 255, 255, 0.05));
+            background: rgba(76, 201, 240, 0.1);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
@@ -361,6 +218,21 @@
             background: linear-gradient(90deg, var(--success), #82dd55);
             border-radius: 10px;
             transition: width 0.5s ease;
+        }
+        
+        .enemies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .enemy-card {
+            background: rgba(233, 69, 96, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .modal {
@@ -383,17 +255,12 @@
             border-radius: 15px;
             max-width: 450px;
             width: 100%;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            max-height: 90vh;
-            overflow-y: auto;
         }
         
         .modal h2 {
             margin-bottom: 20px;
             text-align: center;
-            color: var(--light);
-            font-size: 1.6rem;
         }
         
         .form-group {
@@ -404,7 +271,6 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            font-size: 1rem;
         }
         
         input, select {
@@ -417,56 +283,11 @@
             font-size: 1rem;
         }
         
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.3);
-        }
-        
         .close {
             float: right;
             font-size: 1.6rem;
             cursor: pointer;
             line-height: 1;
-            color: var(--light);
-            transition: color 0.3s ease;
-        }
-        
-        .close:hover {
-            color: var(--accent);
-        }
-        
-        .game-code {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 15px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-weight: bold;
-        }
-        
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            justify-content: center;
-        }
-        
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #7f8c8d;
-        }
-        
-        .status-indicator.connected {
-            background-color: var(--success);
-            box-shadow: 0 0 15px var(--success);
         }
         
         .share-section {
@@ -488,77 +309,6 @@
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .instructions {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .instructions h3 {
-            margin-bottom: 12px;
-            color: var(--warning);
-            font-size: 1.2rem;
-        }
-        
-        .player-controls {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        @media (max-width: 768px) {
-            .game-area {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .skills-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .enemies-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            }
-            
-            .action-buttons {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .dice-animation {
-            animation: diceRoll 0.6s ease-in-out;
-        }
-        
-        @keyframes diceRoll {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.3); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
-        
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(78, 159, 61, 0.7); }
-            70% { box-shadow: 0 0 0 12px rgba(78, 159, 61, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(78, 159, 61, 0); }
-        }
-        
-        .my-player {
-            border: 2px solid var(--success) !important;
-            box-shadow: 0 0 20px rgba(78, 159, 61, 0.3);
-        }
-        
-        .loot-item {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255,255,255,0.05));
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 8px;
-            padding: 10px;
-            margin: 6px 0;
-        }
     </style>
 </head>
 <body>
@@ -567,18 +317,17 @@
             <h1>⚔️ Сага о Бездне</h1>
             <p class="subtitle">Эпическая мультиплеерная RPG - Путешествие через 11 королевств</p>
             <div class="connection-status">
-                <div class="status-indicator" id="status-indicator"></div>
-                <span id="status-text">Подключение...</span>
+                <div class="status-indicator connected" id="status-indicator"></div>
+                <span id="status-text">Игра синхронизирована</span>
             </div>
             <div class="game-code" id="game-code-display">Идентификатор игры: загрузка...</div>
-            <div id="player-id-display" style="margin-top: 10px; opacity: 0.8;"></div>
         </header>
         
         <div class="game-area">
             <section class="panel">
                 <h2>👥 Игроки <span id="players-count">(0/6)</span></h2>
                 <div id="players-list">
-                    <!-- Список игроков будет генерироваться здесь -->
+                    <p style="text-align: center; opacity: 0.7;">Пока нет игроков. Создайте первого персонажа!</p>
                 </div>
                 
                 <div id="player-setup">
@@ -608,15 +357,6 @@
                     <p id="location-description">Подготовка к путешествию...</p>
                 </div>
                 
-                <div class="voting-section" id="voting-section" style="display: none;">
-                    <h3>🗳️ Принятие решения</h3>
-                    <p id="vote-description">Куда отправится группа?</p>
-                    <div id="vote-options">
-                        <!-- Опции голосования будут генерироваться здесь -->
-                    </div>
-                    <button id="submit-vote" style="margin-top: 12px;">✅ Подтвердить выбор</button>
-                </div>
-                
                 <div class="story-container">
                     <h3>📜 Хроники приключения</h3>
                     <div class="story-content" id="story-content">
@@ -624,19 +364,6 @@
                         <p>Ваша команда избранных должна пройти через опасные земли, победить могущественных врагов и в конечном итоге сразиться с Малгором в его крепости в Бездне.</p>
                         <p>Каждый из вас обладает уникальными способностями. Развивайте свои навыки, находите союзников и готовьтесь к величайшей битве этого мира!</p>
                     </div>
-                </div>
-                
-                <div id="game-controls" style="display: none;">
-                    <div class="action-buttons">
-                        <button id="action-attack" class="pulse">⚔️ Атаковать</button>
-                        <button id="action-magic" class="magic-btn">🔮 Колдовать</button>
-                        <button id="action-stealth" class="stealth-btn">👤 Красться</button>
-                        <button id="action-persuade" class="social-btn">💬 Убеждать</button>
-                        <button id="action-explore" class="explore-btn">🔍 Исследовать</button>
-                        <button id="next-turn">➡️ Завершить ход</button>
-                    </div>
-                    
-                    <div id="dice-result" class="dice-result"></div>
                 </div>
                 
                 <div class="progress-section">
@@ -650,7 +377,10 @@
                 
                 <h3>🎯 Противники</h3>
                 <div class="enemies-grid" id="enemies-list">
-                    <!-- Список врагов будет генерироваться здесь -->
+                    <div class="enemy-card">
+                        <h4>Пока нет врагов</h4>
+                        <p>Игра еще не началась</p>
+                    </div>
                 </div>
             </section>
         </div>
@@ -687,99 +417,28 @@
     </footer>
 
     <script>
-        // Firebase конфигурация
-        const firebaseConfig = {
-            apiKey: "AIzaSyBexample-example-example-example",
-            authDomain: "saga-of-the-abyss.firebaseapp.com",
-            databaseURL: "https://saga-of-the-abyss-default-rtdb.firebaseio.com",
-            projectId: "saga-of-the-abyss",
-            storageBucket: "saga-of-the-abyss.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:example"
-        };
-
-        // Инициализация Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Полная игровая система с путешествиями и голосованием
+        // Игровая система
         const gameData = {
             gameId: generateGameId(),
             playerId: generatePlayerId(),
-            isHost: false,
-            connected: false,
-            gameStarted: false,
-            currentPlayerIndex: 0,
             players: [],
             myPlayer: null,
-            currentLocation: "Начальная точка",
-            currentCastle: null,
-            castlesDefeated: 0,
-            voteInProgress: false,
-            currentVote: null,
-            playerVotes: {},
-            
-            locations: {
-                "Лес Теней": {
-                    description: "Густой древний лес, где солнечный свет едва пробивается сквозь кроны деревьев. Таинственные звуки доносятся из глубины чащи.",
-                    options: [
-                        "Исследовать тропу на север",
-                        "Осмотреть руины на востоке", 
-                        "Пройти по тропе вдоль реки"
-                    ]
-                },
-                "Горный перевал": {
-                    description: "Высокогорный перевал с опасными тропами. Ветер свистит между скал, а вдали виднеются вершины, покрытые снегом.",
-                    options: [
-                        "Подняться на最高ую точку",
-                        "Исследовать пещеру",
-                        "Спуститься в долину"
-                    ]
-                },
-                "Заброшенный замок": {
-                    description: "Древний замок, некогда величественный, а ныне пристанище тёмных существ. Башни замка манят к исследованию.",
-                    options: [
-                        "Штурмовать главные ворота",
-                        "Найти тайный вход",
-                        "Исследовать подземелья"
-                    ]
-                }
-            },
-            
-            castles: [
-                { id: 1, name: "Замок Драконьего Пламени", ruler: "Король Драконов", defeated: false, description: "Огненная цитадель, где воздух дрожит от жара драконьих пастей." },
-                { id: 2, name: "Логово Виверн", ruler: "Король Виверн", defeated: false, description: "Гнездовье крылатых убийц на неприступных утёсах." },
-                { id: 3, name: "Гнездо Грифонов", ruler: "Король Грифонов", defeated: false, description: "Орлиное логово среди облаков и скал." },
-                { id: 4, name: "Обитель Фениксов", ruler: "Король Фениксов", defeated: false, description: "Пылающие чертоги, где рождаются и умирают огненные птицы." },
-                { id: 5, name: "Глубины Кракена", ruler: "Король Кракенов", defeated: false, description: "Подводное царство в морских пучинах." },
-                { id: 6, name: "Роща Единорогов", ruler: "Король Единорогов", defeated: false, description: "Волшебный лес, где время течёт иначе." },
-                { id: 7, name: "Пещеры Цербера", ruler: "Король Церберов", defeated: false, description: "Трёхглавый лабиринт в глубинах земли." },
-                { id: 8, name: "Болото Василисков", ruler: "Король Василисков", defeated: false, description: "Токсичные топи, где камень обращается в прах." },
-                { id: 9, name: "Озеро Гидр", ruler: "Король Гидр", defeated: false, description: "Водоём, кишащий многоглавыми чудовищами." },
-                { id: 10, name: "Пустошь Мантикор", ruler: "Король Мантикор", defeated: false, description: "Бесплодная земля, где охотятся скорпионохвостые звери." },
-                { id: 11, name: "Лабиринт Химер", ruler: "Король Химер", defeated: false, description: "Бесконечный лабиринт с меняющейся геометрией." }
-            ],
-            
-            currentEnemies: [],
-            
-            skills: [
-                { id: 1, name: "Силовая атака", description: "Увеличивает урон от физических атак на 25%", cost: 1, unlocked: false, type: "combat" },
-                { id: 2, name: "Магический щит", description: "Снижает получаемый магический урон на 30%", cost: 1, unlocked: false, type: "defense" },
-                { id: 3, name: "Скрытное движение", description: "Позволяет избегать случайных столкновений", cost: 1, unlocked: false, type: "stealth" },
-                { id: 4, name: "Исцеление", description: "Восстанавливает 20 здоровья себе или союзнику", cost: 2, unlocked: false, type: "support" },
-                { id: 5, name: "Критический удар", description: "Шанс 15% нанести двойной урон", cost: 2, unlocked: false, type: "combat" },
-                { id: 6, name: "Магический всплеск", description: "Увеличивает урон от заклинаний на 35%", cost: 2, unlocked: false, type: "magic" },
-                { id: 7, name: "Убедительная речь", description: "Позволяет убеждать NPC без проверки харизмы", cost: 2, unlocked: false, type: "social" },
-                { id: 8, name: "Быстрое восстановление", description: "Ускоряет восстановление здоровья вне боя", cost: 3, unlocked: false, type: "defense" },
-                { id: 9, name: "Мастер клинка", description: "Значительно увеличивает физический урон", cost: 3, unlocked: false, type: "combat" },
-                { id: 10, name: "Архимаг", description: "Удваивает силу всех заклинаний", cost: 3, unlocked: false, type: "magic" }
-            ]
+            gameStarted: false
         };
 
         // Генерация ID игры
         function generateGameId() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('game') || Math.random().toString(36).substring(2, 10).toUpperCase();
+            let gameId = urlParams.get('game');
+            
+            if (!gameId) {
+                gameId = Math.random().toString(36).substring(2, 10).toUpperCase();
+                // Обновляем URL без перезагрузки страницы
+                const newUrl = `${window.location.pathname}?game=${gameId}`;
+                window.history.replaceState({}, '', newUrl);
+            }
+            
+            return gameId;
         }
 
         // Генерация ID игрока
@@ -799,44 +458,17 @@
         const startGameBtn = document.getElementById('start-game-btn');
         const playerModal = document.getElementById('player-modal');
         const playerForm = document.getElementById('player-form');
-        const gameControls = document.getElementById('game-controls');
-        const playerIdDisplay = document.getElementById('player-id-display');
-        const locationInfo = document.getElementById('location-info');
-        const locationDescription = document.getElementById('location-description');
-        const votingSection = document.getElementById('voting-section');
-        const voteDescription = document.getElementById('vote-description');
-        const voteOptions = document.getElementById('vote-options');
-        const submitVoteBtn = document.getElementById('submit-vote');
-        const castlesDefeatedEl = document.getElementById('castles-defeated');
-        const campaignProgress = document.getElementById('campaign-progress');
-        const nextTarget = document.getElementById('next-target');
-        const closeButtons = document.querySelectorAll('.close');
-        const storyContent = document.getElementById('story-content');
-        const enemiesList = document.getElementById('enemies-list');
-        const diceResult = document.getElementById('dice-result');
-        const statusIndicator = document.getElementById('status-indicator');
-        const statusText = document.getElementById('status-text');
         const gameCodeDisplay = document.getElementById('game-code-display');
         const gameLinkInput = document.getElementById('game-link');
-        
-        // Кнопки действий
-        const actionButtons = {
-            attack: document.getElementById('action-attack'),
-            magic: document.getElementById('action-magic'),
-            stealth: document.getElementById('action-stealth'),
-            persuade: document.getElementById('action-persuade'),
-            explore: document.getElementById('action-explore')
-        };
-        const nextTurnBtn = document.getElementById('next-turn');
+        const closeButtons = document.querySelectorAll('.close');
 
         // Инициализация игры
         function initGame() {
             updateGameLink();
             gameCodeDisplay.textContent = `Идентификатор игры: ${gameData.gameId}`;
-            playerIdDisplay.textContent = `Ваш идентификатор: ${gameData.playerId.substring(0, 8)}...`;
             
-            // Подключение к Firebase
-            connectToFirebase();
+            // Загрузка состояния
+            loadGameState();
             
             // Обработчики событий
             setupEventListeners();
@@ -847,171 +479,13 @@
             renderGameState();
         }
 
-        // Подключение к Firebase
-        function connectToFirebase() {
-            statusText.textContent = "Подключение к серверу...";
-            
-            // Проверяем, существует ли уже игра в Firebase
-            const gameRef = database.ref(`games/${gameData.gameId}`);
-            
-            gameRef.once('value').then(snapshot => {
-                if (!snapshot.exists()) {
-                    // Создаем новую игру
-                    gameData.isHost = true;
-                    gameRef.set({
-                        gameStarted: false,
-                        currentPlayerIndex: 0,
-                        currentLocation: "Начальная точка",
-                        currentCastle: null,
-                        castlesDefeated: 0,
-                        voteInProgress: false,
-                        currentVote: null,
-                        playerVotes: {},
-                        currentEnemies: [],
-                        castles: gameData.castles,
-                        skills: gameData.skills,
-                        createdAt: Date.now()
-                    });
-                }
-                
-                // Подписываемся на изменения игры
-                gameRef.on('value', snapshot => {
-                    const gameState = snapshot.val();
-                    if (gameState) {
-                        updateGameState(gameState);
-                    }
-                });
-                
-                // Подписываемся на изменения игроков
-                const playersRef = database.ref(`games/${gameData.gameId}/players`);
-                playersRef.on('value', snapshot => {
-                    const players = snapshot.val() || {};
-                    gameData.players = Object.values(players);
-                    renderPlayers();
-                    updatePlayersCount();
-                });
-                
-                // Обновляем статус подключения
-                gameData.connected = true;
-                statusIndicator.className = 'status-indicator connected';
-                statusText.textContent = 'Игра синхронизирована';
-            }).catch(error => {
-                console.error("Ошибка подключения к Firebase:", error);
-                statusText.textContent = 'Ошибка подключения';
-                // Используем локальную версию как запасной вариант
-                loadLocalGameState();
-            });
-        }
-
-        // Обновление состояния игры из Firebase
-        function updateGameState(gameState) {
-            gameData.gameStarted = gameState.gameStarted || false;
-            gameData.currentPlayerIndex = gameState.currentPlayerIndex || 0;
-            gameData.currentLocation = gameState.currentLocation || "Начальная точка";
-            gameData.currentCastle = gameState.currentCastle || null;
-            gameData.castlesDefeated = gameState.castlesDefeated || 0;
-            gameData.voteInProgress = gameState.voteInProgress || false;
-            gameData.currentVote = gameState.currentVote || null;
-            gameData.playerVotes = gameState.playerVotes || {};
-            gameData.currentEnemies = gameState.currentEnemies || [];
-            gameData.castles = gameState.castles || gameData.castles;
-            gameData.skills = gameState.skills || gameData.skills;
-            
-            if (gameData.gameStarted) {
-                showGameControls();
-            }
-            
-            renderGameState();
-        }
-
-        // Загрузка локального состояния игры
-        function loadLocalGameState() {
-            const savedGame = localStorage.getItem(`sagaOfTheAbyss_${gameData.gameId}`);
-            if (savedGame) {
-                const parsedGame = JSON.parse(savedGame);
-                
-                Object.assign(gameData, {
-                    gameStarted: parsedGame.gameStarted || gameData.gameStarted,
-                    currentPlayerIndex: parsedGame.currentPlayerIndex || gameData.currentPlayerIndex,
-                    currentLocation: parsedGame.currentLocation || gameData.currentLocation,
-                    currentCastle: parsedGame.currentCastle || gameData.currentCastle,
-                    castlesDefeated: parsedGame.castlesDefeated || gameData.castlesDefeated,
-                    voteInProgress: parsedGame.voteInProgress || gameData.voteInProgress,
-                    currentVote: parsedGame.currentVote || gameData.currentVote,
-                    playerVotes: parsedGame.playerVotes || gameData.playerVotes,
-                    currentEnemies: parsedGame.currentEnemies || gameData.currentEnemies,
-                    castles: parsedGame.castles || gameData.castles,
-                    skills: parsedGame.skills || gameData.skills
-                });
-                
-                if (gameData.gameStarted) {
-                    showGameControls();
-                }
-            }
-            
-            const savedPlayers = JSON.parse(localStorage.getItem(`players_${gameData.gameId}`) || '[]');
-            gameData.players = savedPlayers;
-            
-            statusText.textContent = 'Локальный режим (без синхронизации)';
-        }
-
-        // Сохранение состояния игры в Firebase
-        function saveGameState() {
-            if (!gameData.connected) {
-                saveLocalGameState();
-                return;
-            }
-            
-            const gameRef = database.ref(`games/${gameData.gameId}`);
-            gameRef.update({
-                gameStarted: gameData.gameStarted,
-                currentPlayerIndex: gameData.currentPlayerIndex,
-                currentLocation: gameData.currentLocation,
-                currentCastle: gameData.currentCastle,
-                castlesDefeated: gameData.castlesDefeated,
-                voteInProgress: gameData.voteInProgress,
-                currentVote: gameData.currentVote,
-                playerVotes: gameData.playerVotes,
-                currentEnemies: gameData.currentEnemies,
-                castles: gameData.castles,
-                skills: gameData.skills
-            }).catch(error => {
-                console.error("Ошибка сохранения в Firebase:", error);
-                saveLocalGameState();
-            });
-        }
-
-        // Сохранение состояния игры локально
-        function saveLocalGameState() {
-            localStorage.setItem(`sagaOfTheAbyss_${gameData.gameId}`, JSON.stringify({
-                gameStarted: gameData.gameStarted,
-                currentPlayerIndex: gameData.currentPlayerIndex,
-                currentLocation: gameData.currentLocation,
-                currentCastle: gameData.currentCastle,
-                castlesDefeated: gameData.castlesDefeated,
-                voteInProgress: gameData.voteInProgress,
-                currentVote: gameData.currentVote,
-                playerVotes: gameData.playerVotes,
-                currentEnemies: gameData.currentEnemies,
-                castles: gameData.castles,
-                skills: gameData.skills
-            }));
-            
-            localStorage.setItem(`players_${gameData.gameId}`, JSON.stringify(gameData.players));
-        }
-
         // Настройка обработчиков событий
         function setupEventListeners() {
-            actionButtons.attack.addEventListener('click', () => performAction('attack'));
-            actionButtons.magic.addEventListener('click', () => performAction('magic'));
-            actionButtons.stealth.addEventListener('click', () => performAction('stealth'));
-            actionButtons.persuade.addEventListener('click', () => performAction('persuade'));
-            actionButtons.explore.addEventListener('click', () => performAction('explore'));
-            nextTurnBtn.addEventListener('click', nextTurn);
+            addPlayerBtn.addEventListener('click', () => {
+                playerModal.style.display = 'flex';
+            });
             
-            addPlayerBtn.addEventListener('click', () => playerModal.style.display = 'flex');
             startGameBtn.addEventListener('click', startGame);
-            submitVoteBtn.addEventListener('click', submitVote);
             
             playerForm.addEventListener('submit', addPlayer);
             
@@ -1035,50 +509,10 @@
             
             if (myPlayer) {
                 gameData.myPlayer = myPlayer;
+                gameData.players = savedPlayers;
                 addPlayerBtn.textContent = '🎭 Мой персонаж';
                 addPlayerBtn.disabled = true;
-                
-                if (gameData.gameStarted) {
-                    showGameControls();
-                }
-                
-                // Добавляем игрока в Firebase
-                if (gameData.connected) {
-                    const playerRef = database.ref(`games/${gameData.gameId}/players/${gameData.playerId}`);
-                    playerRef.set(myPlayer);
-                }
             }
-        }
-
-        // Общий рендеринг состояния игры
-        function renderGameState() {
-            renderPlayers();
-            renderLocation();
-            renderVoting();
-            renderEnemies();
-            renderSkills();
-            renderProgress();
-            updatePlayersCount();
-        }
-
-        // Показать игровые элементы управления
-        function showGameControls() {
-            gameControls.style.display = 'block';
-            updateGameControls();
-        }
-
-        // Обновление элементов управления
-        function updateGameControls() {
-            const isMyTurn = gameData.myPlayer && 
-                            gameData.players[gameData.currentPlayerIndex] && 
-                            gameData.players[gameData.currentPlayerIndex].id === gameData.myPlayer.id;
-            
-            const canAct = gameData.gameStarted && isMyTurn && !gameData.voteInProgress;
-            
-            Object.values(actionButtons).forEach(btn => btn.disabled = !canAct);
-            nextTurnBtn.disabled = !canAct;
-            
-            renderPlayers();
         }
 
         // Обновление ссылки для общего доступа
@@ -1094,6 +528,17 @@
             alert('Ссылка на игру скопирована в буфер обмена!');
         }
 
+        // Сохранение состояния
+        function saveGameState() {
+            localStorage.setItem(`players_${gameData.gameId}`, JSON.stringify(gameData.players));
+        }
+
+        // Загрузка состояния
+        function loadGameState() {
+            const savedPlayers = JSON.parse(localStorage.getItem(`players_${gameData.gameId}`) || '[]');
+            gameData.players = savedPlayers;
+        }
+
         // Рендеринг игроков
         function renderPlayers() {
             playersList.innerHTML = '';
@@ -1103,13 +548,11 @@
                 return;
             }
             
-            gameData.players.forEach((player, index) => {
-                const isActive = index === gameData.currentPlayerIndex && gameData.gameStarted;
+            gameData.players.forEach((player) => {
                 const isMyPlayer = player.id === gameData.playerId;
-                const isMyTurn = isActive && isMyPlayer;
                 
                 const playerEl = document.createElement('div');
-                playerEl.className = `player-card ${isActive ? 'active' : ''} ${isMyPlayer ? 'my-player' : ''} ${isMyTurn ? 'my-turn' : ''}`;
+                playerEl.className = `player-card ${isMyPlayer ? 'my-player' : ''}`;
                 playerEl.innerHTML = `
                     <h3>
                         <span>${player.name} ${isMyPlayer ? '(Вы)' : ''}</span>
@@ -1120,116 +563,9 @@
                         <div class="stat">⭐ ${player.xp}</div>
                         <div class="stat">${getClassName(player.class)}</div>
                     </div>
-                    <div class="skills">
-                        <strong>Навыки:</strong> ${player.skills.map(skill => skill.name).join(', ') || 'Пока не изучены'}
-                    </div>
-                    ${isActive ? '<div class="player-controls"><strong>🎲 Сейчас ходит!</strong></div>' : ''}
                 `;
                 playersList.appendChild(playerEl);
             });
-        }
-
-        // Рендеринг локации
-        function renderLocation() {
-            if (gameData.currentCastle) {
-                const castle = gameData.castles.find(c => c.id === gameData.currentCastle);
-                locationDescription.innerHTML = `
-                    <strong>${castle.name}</strong><br>
-                    ${castle.description}<br>
-                    <em>Правитель: ${castle.ruler}</em>
-                `;
-            } else if (gameData.locations[gameData.currentLocation]) {
-                locationDescription.innerHTML = `
-                    <strong>${gameData.currentLocation}</strong><br>
-                    ${gameData.locations[gameData.currentLocation].description}
-                `;
-            } else {
-                locationDescription.textContent = gameData.currentLocation;
-            }
-        }
-
-        // Рендеринг голосования
-        function renderVoting() {
-            if (gameData.voteInProgress && gameData.currentVote) {
-                votingSection.style.display = 'block';
-                voteDescription.textContent = gameData.currentVote.question;
-                
-                voteOptions.innerHTML = '';
-                gameData.currentVote.options.forEach((option, index) => {
-                    const optionEl = document.createElement('div');
-                    optionEl.className = `vote-option ${gameData.playerVotes[gameData.playerId] === index ? 'selected' : ''}`;
-                    optionEl.textContent = option;
-                    optionEl.onclick = () => selectVoteOption(index);
-                    voteOptions.appendChild(optionEl);
-                });
-            } else {
-                votingSection.style.display = 'none';
-            }
-        }
-
-        // Выбор опции голосования
-        function selectVoteOption(optionIndex) {
-            gameData.playerVotes[gameData.playerId] = optionIndex;
-            renderVoting();
-        }
-
-        // Отправка голоса
-        function submitVote() {
-            if (gameData.playerVotes[gameData.playerId] === undefined) {
-                alert("Пожалуйста, выберите вариант перед голосованием!");
-                return;
-            }
-            
-            addToStory(`🗳️ ${gameData.myPlayer.name} отдал свой голос.`);
-            
-            // Сохраняем голос в Firebase
-            saveGameState();
-        }
-
-        // Рендеринг врагов
-        function renderEnemies() {
-            enemiesList.innerHTML = '';
-            
-            const enemiesToShow = gameData.currentEnemies.length > 0 ? gameData.currentEnemies : 
-                                gameData.castles.find(c => c.id === gameData.currentCastle) ? 
-                                [{ id: 1, name: "Приспешники короля", health: 100, maxHealth: 100, defeated: false }] : [];
-            
-            if (enemiesToShow.length === 0) {
-                enemiesList.innerHTML = '<p style="text-align: center; opacity: 0.7;">Противники не обнаружены</p>';
-                return;
-            }
-            
-            enemiesToShow.forEach(enemy => {
-                const healthPercent = (enemy.health / enemy.maxHealth) * 100;
-                const enemyEl = document.createElement('div');
-                enemyEl.className = `enemy-card ${enemy.defeated ? 'defeated' : ''} ${enemy.boss ? 'boss' : ''}`;
-                enemyEl.innerHTML = `
-                    <h4>${enemy.name}</h4>
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 5px; margin: 8px 0;">
-                        <div style="height: 8px; background: ${healthPercent > 70 ? '#4e9f3d' : healthPercent > 30 ? '#ff9a3c' : '#e94560'}; width: ${healthPercent}%; border-radius: 5px;"></div>
-                    </div>
-                    <p>${enemy.health}/${enemy.maxHealth} HP</p>
-                    <p>${enemy.defeated ? '✅ ПОБЕЖДЕН' : '⚔️ АКТИВЕН'}</p>
-                `;
-                enemiesList.appendChild(enemyEl);
-            });
-        }
-
-        // Рендеринг навыков
-        function renderSkills() {
-            // Заглушка для рендеринга навыков
-        }
-
-        // Рендеринг прогресса
-        function renderProgress() {
-            castlesDefeatedEl.textContent = gameData.castlesDefeated;
-            const progressPercent = (gameData.castlesDefeated / 11) * 100;
-            campaignProgress.style.width = `${progressPercent}%`;
-            
-            const nextCastle = gameData.castles.find(c => !c.defeated);
-            nextTarget.textContent = nextCastle ? 
-                `Следующая цель: ${nextCastle.name}` : 
-                "Финальная битва с Богом Демонов!";
         }
 
         // Обновление счетчика игроков
@@ -1248,6 +584,18 @@
                 cleric: '✝️ Жрец'
             };
             return classNames[classKey] || 'Неизвестно';
+        }
+
+        // Получение здоровья по классу
+        function getClassHealth(className) {
+            const healthMap = {
+                warrior: 120,
+                mage: 80,
+                rogue: 100,
+                ranger: 100,
+                cleric: 110
+            };
+            return healthMap[className] || 100;
         }
 
         // Добавление нового игрока
@@ -1275,42 +623,21 @@
             
             gameData.myPlayer = newPlayer;
             
-            // Добавляем игрока в Firebase
-            if (gameData.connected) {
-                const playerRef = database.ref(`games/${gameData.gameId}/players/${gameData.playerId}`);
-                playerRef.set(newPlayer);
+            const existingIndex = gameData.players.findIndex(p => p.id === gameData.playerId);
+            if (existingIndex >= 0) {
+                gameData.players[existingIndex] = newPlayer;
             } else {
-                // Локальное сохранение
-                const existingIndex = gameData.players.findIndex(p => p.id === gameData.playerId);
-                if (existingIndex >= 0) {
-                    gameData.players[existingIndex] = newPlayer;
-                } else {
-                    gameData.players.push(newPlayer);
-                }
-                saveLocalGameState();
+                gameData.players.push(newPlayer);
             }
             
             playerModal.style.display = 'none';
             playerForm.reset();
             
-            addToStory(`🎉 К нам присоединился ${name} - ${getClassName(playerClass)}!`);
-            
             addPlayerBtn.textContent = '🎭 Мой персонаж';
             addPlayerBtn.disabled = true;
             
+            saveGameState();
             renderGameState();
-        }
-
-        // Получение здоровья по классу
-        function getClassHealth(className) {
-            const healthMap = {
-                warrior: 120,
-                mage: 80,
-                rogue: 100,
-                ranger: 100,
-                cleric: 110
-            };
-            return healthMap[className] || 100;
         }
 
         // Начало игры
@@ -1322,205 +649,40 @@
             
             gameData.gameStarted = true;
             startGameBtn.disabled = true;
-            addPlayerBtn.disabled = true;
             
-            showGameControls();
-            addToStory("🚀 Приключение начинается! Группа отправляется в путь...");
+            // Обновляем интерфейс
+            document.getElementById('location-description').textContent = "Группа собирается в Лесу Теней...";
+            document.getElementById('next-target').textContent = "Следующая цель: Исследовать Лес Теней";
             
-            // Начинаем с голосования
-            startLocationVote();
-            
-            saveGameState();
-        }
-
-        // Начало голосования по локации
-        function startLocationVote() {
-            gameData.voteInProgress = true;
-            gameData.currentVote = {
-                question: "Куда должна отправиться группа?",
-                options: gameData.locations["Лес Теней"].options
-            };
-            gameData.playerVotes = {};
-            
-            addToStory("🗳️ Группа должна принять решение. Куда мы отправимся?");
-        }
-
-        // Выполнение действия
-        function performAction(action) {
-            if (!gameData.gameStarted || !gameData.myPlayer) {
-                alert("Игра еще не началась или персонаж не создан!");
-                return;
-            }
-            
-            if (gameData.players[gameData.currentPlayerIndex].id !== gameData.myPlayer.id) {
-                alert("Сейчас не ваш ход!");
-                return;
-            }
-            
-            if (gameData.voteInProgress) {
-                alert("Сначала завершите голосование!");
-                return;
-            }
-            
-            const diceRoll = rollDice(20);
-            let success = false;
-            let message = '';
-            
-            diceResult.classList.add('dice-animation');
-            setTimeout(() => diceResult.classList.remove('dice-animation'), 600);
-            
-            switch(action) {
-                case 'attack':
-                    success = diceRoll >= 10;
-                    if (success && gameData.currentEnemies.length > 0) {
-                        const enemy = gameData.currentEnemies.find(e => !e.defeated);
-                        if (enemy) {
-                            const damage = Math.floor(Math.random() * 15) + 5;
-                            enemy.health = Math.max(0, enemy.health - damage);
-                            if (enemy.health === 0) {
-                                enemy.defeated = true;
-                                message = `🗡️ ${gameData.myPlayer.name} атакует ${enemy.name} и наносит ${damage} урона! ${enemy.name} повержен!`;
-                                checkCombatCompletion();
-                            } else {
-                                message = `🗡️ ${gameData.myPlayer.name} атакует ${enemy.name} и наносит ${damage} урона!`;
-                            }
-                        }
-                    } else {
-                        message = `❌ ${gameData.myPlayer.name} пытается атаковать, но промахивается!`;
-                    }
-                    break;
-                    
-                case 'magic':
-                    success = diceRoll >= 12;
-                    message = `🔮 ${gameData.myPlayer.name} использует магию. Бросок: ${diceRoll}. ${success ? 'Успех! Заклинание сработало.' : 'Провал! Магия не подействовала.'}`;
-                    break;
-                    
-                case 'stealth':
-                    success = diceRoll >= 8;
-                    message = `👤 ${gameData.myPlayer.name} пытается действовать скрытно. Бросок: ${diceRoll}. ${success ? 'Успех! Никто не заметил.' : 'Провал! Вас обнаружили.'}`;
-                    break;
-                    
-                case 'persuade':
-                    success = diceRoll >= 15;
-                    message = `💬 ${gameData.myPlayer.name} пытается кого-то убедить. Бросок: ${diceRoll}. ${success ? 'Успех! Убедил собеседника.' : 'Провал! Аргументы не подействовали.'}`;
-                    break;
-                    
-                case 'explore':
-                    success = diceRoll >= 6;
-                    const lootItems = ["золотые монеты", "магический свиток", "зелье здоровья", "карту сокровищ", "древний артефакт"];
-                    const randomItem = lootItems[Math.floor(Math.random() * lootItems.length)];
-                    message = `🔍 ${gameData.myPlayer.name} исследует территорию. Бросок: ${diceRoll}. ${success ? `Успех! Найден(а): ${randomItem}.` : 'Провал! Ничего не обнаружено.'}`;
-                    break;
-            }
-            
-            diceResult.textContent = `🎲 Результат броска: ${diceRoll}`;
-            diceResult.className = `dice-result ${success ? 'success' : 'failure'}`;
-            
-            addToStory(message);
-            
-            if (success) {
-                gameData.myPlayer.xp += 10;
-                
-                if (gameData.myPlayer.xp >= gameData.myPlayer.level * 100) {
-                    gameData.myPlayer.level++;
-                    gameData.myPlayer.xp = 0;
-                    gameData.myPlayer.maxHealth += 10;
-                    gameData.myPlayer.health = gameData.myPlayer.maxHealth;
-                    addToStory(`🎉 ${gameData.myPlayer.name} достиг ${gameData.myPlayer.level} уровня! Здоровье увеличено.`);
-                }
-                
-                // Обновляем игрока в Firebase
-                if (gameData.connected) {
-                    const playerRef = database.ref(`games/${gameData.gameId}/players/${gameData.playerId}`);
-                    playerRef.update({
-                        level: gameData.myPlayer.level,
-                        xp: gameData.myPlayer.xp,
-                        health: gameData.myPlayer.health,
-                        maxHealth: gameData.myPlayer.maxHealth
-                    });
-                }
-            }
-            
-            Object.values(actionButtons).forEach(btn => btn.disabled = true);
-            nextTurnBtn.disabled = true;
-            
-            saveGameState();
-            renderGameState();
-        }
-
-        // Проверка завершения боя
-        function checkCombatCompletion() {
-            if (gameData.currentEnemies.every(enemy => enemy.defeated)) {
-                const currentCastle = gameData.castles.find(c => c.id === gameData.currentCastle);
-                if (currentCastle) {
-                    currentCastle.defeated = true;
-                    gameData.castlesDefeated++;
-                    gameData.currentCastle = null;
-                    gameData.currentEnemies = [];
-                    
-                    addToStory(`🏆 ПОБЕДА! ${currentCastle.ruler} повержен! Замок ${currentCastle.name} зачищен!`);
-                    
-                    if (gameData.castlesDefeated === 11) {
-                        addToStory("🎊 ВЕЛИКАЯ ПОБЕДА! Все 11 королей повержены! Теперь путь к Богу Демонов открыт!");
-                    } else {
-                        addToStory("Группа готовится к следующему этапу путешествия...");
-                        setTimeout(() => startLocationVote(), 2000);
-                    }
-                }
-            }
-        }
-
-        // Бросок кубика
-        function rollDice(sides) {
-            return Math.floor(Math.random() * sides) + 1;
-        }
-
-        // Следующий ход
-        function nextTurn() {
-            if (!gameData.myPlayer || gameData.players[gameData.currentPlayerIndex].id !== gameData.myPlayer.id) {
-                alert("Сейчас не ваш ход!");
-                return;
-            }
-            
-            gameData.currentPlayerIndex = (gameData.currentPlayerIndex + 1) % gameData.players.length;
-            
-            addToStory(`🎲 Теперь ходит ${gameData.players[gameData.currentPlayerIndex].name}.`);
-            
-            updateGameControls();
-            saveGameState();
-        }
-
-        // Добавление сообщения в историю
-        function addToStory(message) {
+            // Добавляем сообщение в историю
+            const storyContent = document.getElementById('story-content');
             const p = document.createElement('p');
-            p.textContent = message;
+            p.textContent = "🚀 Приключение начинается! Группа отправляется в путь через Лес Теней...";
             storyContent.appendChild(p);
-            storyContent.scrollTop = storyContent.scrollHeight;
-        }
-
-        // Разблокировка навыка
-        function unlockSkill(skillId) {
-            if (!gameData.myPlayer) {
-                alert("Сначала создайте персонажа!");
-                return;
-            }
             
-            const skill = gameData.skills.find(s => s.id === skillId);
-            if (skill && !skill.unlocked && gameData.myPlayer.level >= skill.cost) {
-                skill.unlocked = true;
-                gameData.myPlayer.skills.push(skill);
-                
-                addToStory(`📚 ${gameData.myPlayer.name} изучил навык "${skill.name}"!`);
-                saveGameState();
-                renderGameState();
-            } else if (!skill.unlocked && gameData.myPlayer.level < skill.cost) {
-                alert(`Для изучения навыка "${skill.name}" требуется ${skill.cost} уровень!`);
-            }
+            // Добавляем врагов
+            const enemiesList = document.getElementById('enemies-list');
+            enemiesList.innerHTML = `
+                <div class="enemy-card">
+                    <h4>Лесной волк</h4>
+                    <p>50/50 HP</p>
+                    <p>⚔️ АКТИВЕН</p>
+                </div>
+                <div class="enemy-card">
+                    <h4>Гоблин-разведчик</h4>
+                    <p>40/40 HP</p>
+                    <p>⚔️ АКТИВЕН</p>
+                </div>
+            `;
+            
+            saveGameState();
         }
 
-        // Глобальные функции
-        window.unlockSkill = unlockSkill;
-        window.copyGameLink = copyGameLink;
+        // Общий рендеринг состояния игры
+        function renderGameState() {
+            renderPlayers();
+            updatePlayersCount();
+        }
 
         // Запуск игры
         window.addEventListener('DOMContentLoaded', initGame);
